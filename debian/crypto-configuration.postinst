@@ -1,0 +1,160 @@
+#!/bin/bash
+
+# This script is meant to be used when the postinst script is called with $1
+# set to triggered (this will require some minor adjustments)
+
+set -e
+set -u
+
+shopt -s inherit_errexit
+
+# DESTDIR="$(realpath "testdir")/"
+DESTDIR=''
+DEFAULT_PROFILE='default'
+# DISTRO_PROFILES='distro/crypto-configuration'
+DISTRO_PROFILES='/etc/crypto-configuration'
+# USER_PROFILES='user/crypto-configuration'
+# ALL_PROFILES="${DISTRO_PROFILES} ${USER_PROFILES}"
+ALL_PROFILES="${DISTRO_PROFILES}"
+
+shall_log='false'
+
+# apps="$1"
+# apps=${DESTDIR}/distro/${DEFAULT_PROFILE}/*/
+
+dirs_in() {
+  local d
+  d="${1}"
+
+  find "${d}" -mindepth 1 -maxdepth 1 -type d
+}
+
+# profile_dir_of_profile_name() {
+#   local profile
+#   profile="$1"
+# 
+#   if [ -e "${profile_dir}/${profile}" ]; then
+#     echo '..'
+#   else
+#     echo "${DISTRO_PROFILES}"
+#   fi
+# }
+
+# is_in_set() {
+#   local k
+#   local s
+#   k="$1"
+#   s="$2"
+# 
+#   case "${s}," in
+#     *,${k},*) true ;;
+#     *) false ;;
+#   esac
+# }
+# 
+# is_installed() {
+#   is_in_set "$1" "${installed}"
+# }
+# 
+# is_removed() {
+#   is_in_set "$1" "${removed}"
+# }
+
+triggered() {
+  local apps
+  apps="$*"
+
+  installed=''
+  removed=''
+
+  for app in ${apps}; do
+    if [ -e "${DESTDIR}${DISTRO_PROFILES}/${DEFAULT_PROFILE}/${app}" ]; then
+      installed="${installed},${app}"
+    else
+      removed="${removed},${app}"
+    fi
+  done
+
+  for profile_dir in ${ALL_PROFILES}; do
+    profile_dir="${DESTDIR}${profile_dir}"
+
+    if ! [ -d "${profile_dir}" ]; then
+      continue
+    fi
+
+    $shall_log && echo "- Profile dir: ${profile_dir}"
+
+    for profile in $(dirs_in "${profile_dir}"); do
+
+      profile="$(basename "${profile}")"
+
+      echo "${profile}" | cat "${profile_dir}/${profile}/parent" - 
+
+    done \
+    \
+    | tsort \
+    \
+    | while read profile; do
+
+      # Skip profiles that don't exist in the current profile directory
+      # This is because shell script makes it a fair bit difficult to do the
+      # topological sort on profile names and keep track of which directory they
+      # come from.
+      if ! [ -e "${profile_dir}/${profile}" ]; then
+        continue
+      fi
+
+      $shall_log && echo "  - Profile: ${profile}"
+
+      # The default profile has no parent by definition and does not need to be
+      # modified since it is the single source of truth
+      case "${profile}" in
+        "${DEFAULT_PROFILE}")
+          $shall_log && echo "    - source of truth"
+          continue;;
+      esac
+
+      # Due to the call to tsort we couldn't easily keep the information on
+      # where the profiles reside. Recover that.
+      parent_profile="$(cat "${profile_dir}/${profile}/parent")"
+      if [ -e "${profile_dir}/${parent_profile}" ]; then
+        parent_profile_dir=".."
+      else
+        parent_profile_dir="${DESTDIR}${DISTRO_PROFILES}"
+      fi
+
+      for app in ${apps}; do
+
+        link="${profile_dir}/${profile}/${app}"
+        target="${parent_profile_dir}/${parent_profile}/${app}" 
+        if { [ "${parent_profile_dir}" = ".." ] && [ -e "$(realpath -m "${link}/../${target}")" ]; } || { [ -e "$(realpath -m "${target}")" ]; }; then
+          $shall_log && echo "    - ${app}: link to ${target}"
+          if ! [ -e "${link}" ]; then
+            ln -sfn "${target}" "${link}"
+          fi
+        else
+          if [ -e "${link}" ] || [ -L "${link}" ]; then
+            $shall_log && echo "    - ${app}: remove"
+          else
+            $shall_log && echo "    - ${app}: absent"
+          fi
+          rm -f "${link}"
+        fi
+
+      done
+
+    done
+
+  done
+}
+
+case "$1" in
+  triggered)
+    shift
+    triggered "$@"
+    ;;
+esac
+
+#DEBHELPER#
+
+exit 0
