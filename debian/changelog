@@ -1,0 +1,13 @@
+crypto-configuration (0.2) mantic; urgency=medium
+
+  * Add crypto-configuration binary
+  * Various postinst fixes
+  * Add triggers
+
+ -- Adrien Nader <adrien.nader@canonical.com>  Tue, 19 Sep 2023 17:27:53 +0200
+
+crypto-configuration (0.1) mantic; urgency=medium
+
+  * Initial release.
+
+ -- Adrien Nader <adrien.nader@canonical.com>  Tue, 19 Sep 2023 11:41:43 +0200

@@ -1,2 +1,5 @@
 *~
 *.sw[po]
+
+# dh-make example files
+/debian/*.ex
