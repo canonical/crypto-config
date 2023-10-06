@@ -18,14 +18,17 @@ devices:
 config:
   cloud-init.user-data: |
     #cloud-config
-    sources:
-      crypto-config:
-        source: "ppa:adrien-n/crypto-configuration-demo"
+    autoinstall:
+      apt:
+        sources:
+          crypto-config-ppa:
+            source: "ppa:adrien-n/crypto-configuration-demo"
     package_update: true
     package_upgrade: true
     packages:
       - nginx
       - certbot
+      - crypto-configuration
     runcmd:
       - certbot certonly --standalone --pre-hook 'systemctl stop nginx' --post-hook 'systemctl start nginx' --agree-tos --preferred-challenges http -d mantic-cc.dcln.fr -m adrien@notk.org -n
       # - a2enmod ssl
