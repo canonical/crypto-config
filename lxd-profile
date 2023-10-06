@@ -1,0 +1,42 @@
+devices:
+  proxy-80-v4:
+    connect: tcp:127.0.0.1:80
+    listen: tcp:0.0.0.0:80
+    type: proxy
+  proxy-443-v4:
+    connect: tcp:127.0.0.1:443
+    listen: tcp:0.0.0.0:443
+    type: proxy
+  # proxy-80-v6:
+  #   connect: tcp:[::1]:80
+  #   listen: tcp:[::]:80
+  #   type: proxy
+  # proxy-443-v6:
+  #   connect: tcp:[::1]:443
+  #   listen: tcp:[::]:443
+  #   type: proxy
+config:
+  cloud-init.user-data: |
+    #cloud-config
+    sources:
+      crypto-config:
+        source: "ppa:adrien-n/crypto-configuration-demo"
+    package_update: true
+    package_upgrade: true
+    packages:
+      - nginx
+      - certbot
+    runcmd:
+      - certbot certonly --standalone --pre-hook 'systemctl stop nginx' --post-hook 'systemctl start nginx' --agree-tos --preferred-challenges http -d mantic-cc.dcln.fr -m adrien@notk.org -n
+      # - a2enmod ssl
+      # - a2ensite default-ssl
+      - sed -i '/443 ssl default_server/ s/# //' /etc/nginx/sites-available/default
+      - sed -i '/replace_domain/ { s/replace_domain/mantic-cc.dcln.fr/ ; s/# // }' /etc/nginx/sites-available/default
+      # - sed -i '/replace_domain/ { s/replace_domain/mantic-cc.dcln.fr/ ; s/# // }' /etc/apache2/sites-available/default-ssl.conf
+
+# lxc profile create tls
+# for port in 80 443; do
+#   lxc profile device add tls proxy-${port}-v4 proxy "listen=tcp:0.0.0.0:${port}" connect="tcp:127.0.0.1:${port}"
+#   lxc profile device add tls proxy-${port}-v6 proxy "listen=tcp:[::]:${port}" connect="tcp:[::1]:${port}"
+# done
+# lxc launch ubuntu-daily:mantic mantic --profile tls
