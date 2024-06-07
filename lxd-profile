@@ -21,7 +21,7 @@ config:
     apt:
       sources:
         crypto-config-ppa:
-          source: "ppa:adrien-n/crypto-configuration-demo"
+          source: "ppa:adrien/crypto-config"
     package_update: true
     package_upgrade: true
     packages:
