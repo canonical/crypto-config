@@ -8,19 +8,14 @@ set -u
 
 shopt -s inherit_errexit
 
-# DESTDIR="$(realpath "testdir")/"
-DESTDIR=''
+DESTDIR="${DESTDIR:-}"
 DEFAULT_PROFILE='default'
-# DISTRO_PROFILES='distro/crypto-configuration'
-DISTRO_PROFILES='/etc/crypto-configuration'
+DISTRO_PROFILES="${DISTRO_PROFILES:-/etc/crypto-configuration}"
 # USER_PROFILES='user/crypto-configuration'
 # ALL_PROFILES="${DISTRO_PROFILES} ${USER_PROFILES}"
 ALL_PROFILES="${DISTRO_PROFILES}"
 
-shall_log='false'
-
-# apps="$1"
-# apps=${DESTDIR}/distro/${DEFAULT_PROFILE}/*/
+verbose='false'
 
 dirs_in() {
   local d
@@ -29,127 +24,109 @@ dirs_in() {
   find "${d}" -mindepth 1 -maxdepth 1 -type d
 }
 
-# profile_dir_of_profile_name() {
-#   local profile
-#   profile="$1"
-# 
-#   if [ -e "${profile_dir}/${profile}" ]; then
-#     echo '..'
-#   else
-#     echo "${DISTRO_PROFILES}"
-#   fi
-# }
+_list_profiles_and_parent() {
+  local profile_dir
 
-# is_in_set() {
-#   local k
-#   local s
-#   k="$1"
-#   s="$2"
-# 
-#   case "${s}," in
-#     *,${k},*) true ;;
-#     *) false ;;
-#   esac
-# }
-# 
-# is_installed() {
-#   is_in_set "$1" "${installed}"
-# }
-# 
-# is_removed() {
-#   is_in_set "$1" "${removed}"
-# }
+  profile_dir="$1"
 
-triggered() {
-  local apps
-  apps="$*"
+  for profile in $(dirs_in "${profile_dir}"); do
 
-  installed=''
-  removed=''
+    profile="$(basename "${profile}")"
 
-  for app in ${apps}; do
-    if [ -e "${DESTDIR}${DISTRO_PROFILES}/${DEFAULT_PROFILE}/${app}" ]; then
-      installed="${installed},${app}"
-    else
-      removed="${removed},${app}"
-    fi
-  done
-
-  for profile_dir in ${ALL_PROFILES}; do
-    profile_dir="${DESTDIR}${profile_dir}"
-
-    if ! [ -d "${profile_dir}" ]; then
-      continue
-    fi
-
-    $shall_log && echo "- Profile dir: ${profile_dir}"
-
-    for profile in $(dirs_in "${profile_dir}"); do
-
-      profile="$(basename "${profile}")"
-
-      echo "${profile}" | cat "${profile_dir}/${profile}/parent" - 
-
-    done \
-    \
-    | tsort \
-    \
-    | while read profile; do
-
-      # Skip profiles that don't exist in the current profile directory
-      # This is because shell script makes it a fair bit difficult to do the
-      # topological sort on profile names and keep track of which directory they
-      # come from.
-      if ! [ -e "${profile_dir}/${profile}" ]; then
-        continue
-      fi
-
-      $shall_log && echo "  - Profile: ${profile}"
-
-      # The default profile has no parent by definition and does not need to be
-      # modified since it is the single source of truth
-      case "${profile}" in
-        "${DEFAULT_PROFILE}")
-          $shall_log && echo "    - source of truth"
-          continue;;
-      esac
-
-      # Due to the call to tsort we couldn't easily keep the information on
-      # where the profiles reside. Recover that.
-      parent_profile="$(cat "${profile_dir}/${profile}/parent")"
-      if [ -e "${profile_dir}/${parent_profile}" ]; then
-        parent_profile_dir=".."
-      else
-        parent_profile_dir="${DESTDIR}${DISTRO_PROFILES}"
-      fi
-
-      for app in ${apps}; do
-
-        link="${profile_dir}/${profile}/${app}"
-        target="${parent_profile_dir}/${parent_profile}/${app}" 
-        if { [ "${parent_profile_dir}" = ".." ] && [ -e "$(realpath -m "${link}/../${target}")" ]; } || { [ -e "$(realpath -m "${target}")" ]; }; then
-          $shall_log && echo "    - ${app}: link to ${target}"
-          if ! [ -e "${link}" ]; then
-            ln -sfn "${target}" "${link}"
-          fi
-        else
-          if [ -e "${link}" ] || [ -L "${link}" ]; then
-            $shall_log && echo "    - ${app}: remove"
-          else
-            $shall_log && echo "    - ${app}: absent"
-          fi
-          rm -f "${link}"
-        fi
-
-      done
-
-    done
+    echo "${profile}" | cat "${profile_dir}/${profile}/parent" -
 
   done
 }
 
+_reach_state() {
+  local profile_dir
+  local profile
+  local apps
+
+  profile_dir="${1}"
+  profile="${2}"
+  apps="$*"
+
+  # Skip profiles that don't exist in the current profile directory
+  # This is because shell script makes it a fair bit difficult to do the
+  # topological sort on profile names and keep track of which directory
+  # they come from.
+  if ! [ -e "${profile_dir}/${profile}" ]; then
+    continue
+  fi
+
+  $verbose && echo "  - Profile: ${profile}"
+
+  # The default profile has no parent by definition and does not need to be
+  # modified since it is the single source of truth
+  case "${profile}" in
+    "${DEFAULT_PROFILE}")
+      $verbose && echo "    - source of truth"
+      continue;;
+  esac
+
+  # Due to the call to tsort we couldn't easily keep the information on
+  # where the profiles reside. Recover that.
+  parent_profile="$(cat "${profile_dir}/${profile}/parent")"
+  if [ -e "${profile_dir}/${parent_profile}" ]; then
+    parent_profile_dir=".."
+  else
+    parent_profile_dir="${DESTDIR}${DISTRO_PROFILES}"
+  fi
+
+  for app in ${apps}; do
+
+    link="${profile_dir}/${profile}/${app}"
+    target="${parent_profile_dir}/${parent_profile}/${app}"
+    if { [ "${parent_profile_dir}" = ".." ] && [ -e "$(realpath -m "${link}/../${target}")" ]; } || { [ -e "$(realpath -m "${target}")" ]; }; then
+      $verbose && echo "    - ${app}: link to ${target}"
+      if ! [ -e "${link}" ]; then
+        ln -sfn "${target}" "${link}"
+      fi
+    else
+      if [ -e "${link}" ] || [ -L "${link}" ]; then
+        $verbose && echo "    - ${app}: remove"
+      else
+        $verbose && echo "    - ${app}: absent"
+      fi
+      rm -f "${link}"
+    fi
+
+  done
+}
+
+_update_profile() {
+  local profile_dir
+  local apps
+
+  profile_dir="${1}"
+  apps="$*"
+
+  if ! [ -d "${profile_dir}" ]; then
+    continue
+  fi
+
+  $verbose && echo "- Profile dir: ${profile_dir}"
+
+  _list_profiles_and_parent "${profile_dir}" \
+  | tsort \
+  | while read profile; do
+      _reach_state "${profile_dir}" "${profile}" ${apps}
+  done
+}
+
+triggered() {
+  local apps
+
+  apps="$*"
+
+  for profile_dir in ${ALL_PROFILES}; do
+    _update_profile "${DESTDIR}${profile_dir}" ${apps}
+  done
+}
+
 case "$1" in
-  triggered)
+  triggered|configure)
     shift
     triggered "$@"
     ;;
