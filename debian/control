@@ -1,4 +1,4 @@
-Source: crypto-configuration
+Source: crypto-config
 Section: admin
 Priority: optional
 Maintainer: Adrien Nader <adrien.nader@canonical.com>
@@ -6,14 +6,17 @@ Rules-Requires-Root: no
 Build-Depends:
  debhelper-compat (= 13),
 Standards-Version: 4.6.2
-Homepage: <insert the upstream URL, if relevant>
-#Vcs-Browser: https://salsa.debian.org/debian/crypto-configuration
-#Vcs-Git: https://salsa.debian.org/debian/crypto-configuration.git
+Homepage: https://gitlab.com/crypto-config/crypto-config
+Vcs-Browser: https://gitlab.com/crypto-config/crypto-config
+Vcs-Git: https://gitlab.com/crypto-config/crypto-config.git
 
-Package: crypto-configuration
+Package: crypto-config
 Architecture: any
 Depends:
  ${shlibs:Depends},
  ${misc:Depends},
-Description: <insert up to 60 chars description>
- <Insert long description, indented with spaces.>
+Description: Atomic management of related cryptographic options
+ Crypto-config enables managing related configuration options in an atomic
+ manner. It makes it possible to enable or disable an element across all
+ software enrolled in the scheme. It is meant to offer system administrators a
+ way to filter cryptographic algorithms and key sizes system-wide.

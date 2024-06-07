@@ -10,8 +10,8 @@ shopt -s inherit_errexit
 
 DESTDIR="${DESTDIR:-}"
 DEFAULT_PROFILE='default'
-DISTRO_PROFILES="${DISTRO_PROFILES:-/etc/crypto-configuration}"
-# USER_PROFILES='user/crypto-configuration'
+DISTRO_PROFILES="${DISTRO_PROFILES:-/etc/crypto-config}"
+# USER_PROFILES='user/crypto-config'
 # ALL_PROFILES="${DISTRO_PROFILES} ${USER_PROFILES}"
 ALL_PROFILES="${DISTRO_PROFILES}"
 

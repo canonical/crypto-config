@@ -27,11 +27,11 @@ config:
     packages:
       - nginx
       - certbot
-      - crypto-configuration
+      - crypto-config
     runcmd:
       - apt-get update
-      - apt-get install -y nginx certbot crypto-configuration
-      - crypto-configuration future
+      - apt-get install -y nginx certbot crypto-config
+      - crypto-config future
       - certbot certonly --standalone --pre-hook 'systemctl stop nginx' --post-hook 'systemctl start nginx' --agree-tos --preferred-challenges http -d mantic-cc.dcln.fr -d m.dcln.fr -m adrien@notk.org -n --test-cert
       # - a2enmod ssl
       # - a2ensite default-ssl
