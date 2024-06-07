@@ -45,14 +45,15 @@ _reach_state() {
 
   profile_dir="${1}"
   profile="${2}"
-  apps="$*"
+  shift 2
+  apps=("$@")
 
   # Skip profiles that don't exist in the current profile directory
   # This is because shell script makes it a fair bit difficult to do the
   # topological sort on profile names and keep track of which directory
   # they come from.
   if ! [ -e "${profile_dir}/${profile}" ]; then
-    continue
+    return
   fi
 
   $verbose && echo "  - Profile: ${profile}"
@@ -62,7 +63,7 @@ _reach_state() {
   case "${profile}" in
     "${DEFAULT_PROFILE}")
       $verbose && echo "    - source of truth"
-      continue;;
+      return;;
   esac
 
   # Due to the call to tsort we couldn't easily keep the information on
@@ -74,7 +75,7 @@ _reach_state() {
     parent_profile_dir="${DESTDIR}${DISTRO_PROFILES}"
   fi
 
-  for app in ${apps}; do
+  for app in "${apps[@]}"; do
 
     link="${profile_dir}/${profile}/${app}"
     target="${parent_profile_dir}/${parent_profile}/${app}"
@@ -100,28 +101,29 @@ _update_profile() {
   local apps
 
   profile_dir="${1}"
-  apps="$*"
+  shift
+  apps=("$@")
 
   if ! [ -d "${profile_dir}" ]; then
-    continue
+    return
   fi
 
   $verbose && echo "- Profile dir: ${profile_dir}"
 
   _list_profiles_and_parent "${profile_dir}" \
   | tsort \
-  | while read profile; do
-      _reach_state "${profile_dir}" "${profile}" ${apps}
+  | while read -r profile; do
+      _reach_state "${profile_dir}" "${profile}" "${apps[@]}"
   done
 }
 
 triggered() {
   local apps
 
-  apps="$*"
+  apps=("$@")
 
   for profile_dir in ${ALL_PROFILES}; do
-    _update_profile "${DESTDIR}${profile_dir}" ${apps}
+    _update_profile "${DESTDIR}${profile_dir}" "${apps[@]}"
   done
 }
 
