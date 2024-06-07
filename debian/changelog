@@ -1,4 +1,11 @@
-crypto-configuration (0.2) mantic; urgency=medium
+crypto-config (0.3) oracular; urgency=medium
+
+  * Rename to crypto-config and update paths
+  * Remove dh_make left-overs
+
+ -- Adrien Nader <adrien.nader@canonical.com>  Fri, 07 Jun 2024 16:34:29 +0200
+
+crypto-config (0.2) mantic; urgency=medium
 
   * Add crypto-configuration binary
   * Various postinst fixes
@@ -6,7 +13,7 @@ crypto-configuration (0.2) mantic; urgency=medium
 
  -- Adrien Nader <adrien.nader@canonical.com>  Tue, 19 Sep 2023 17:27:53 +0200
 
-crypto-configuration (0.1) mantic; urgency=medium
+crypto-config (0.1) mantic; urgency=medium
 
   * Initial release.
 
