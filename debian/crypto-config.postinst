@@ -17,6 +17,12 @@ ALL_PROFILES="${DISTRO_PROFILES}"
 
 verbose='false'
 
+log() {
+  if "${verbose}"; then
+    echo "$@"
+  fi
+}
+
 dirs_in() {
   local d
   d="${1}"
@@ -56,13 +62,13 @@ _reach_state() {
     return
   fi
 
-  $verbose && echo "  - Profile: ${profile}"
+  log "  - Profile: ${profile}"
 
   # The default profile has no parent by definition and does not need to be
   # modified since it is the single source of truth
   case "${profile}" in
     "${DEFAULT_PROFILE}")
-      $verbose && echo "    - source of truth"
+      log "    - source of truth"
       return;;
   esac
 
@@ -80,15 +86,15 @@ _reach_state() {
     link="${profile_dir}/${profile}/${app}"
     target="${parent_profile_dir}/${parent_profile}/${app}"
     if { [ "${parent_profile_dir}" = ".." ] && [ -e "$(realpath -m "${link}/../${target}")" ]; } || { [ -e "$(realpath -m "${target}")" ]; }; then
-      $verbose && echo "    - ${app}: link to ${target}"
+      log "    - ${app}: link to ${target}"
       if ! [ -e "${link}" ]; then
         ln -sfn "${target}" "${link}"
       fi
     else
       if [ -e "${link}" ] || [ -L "${link}" ]; then
-        $verbose && echo "    - ${app}: remove"
+        log "    - ${app}: remove"
       else
-        $verbose && echo "    - ${app}: absent"
+        log "    - ${app}: absent"
       fi
       rm -f "${link}"
     fi
@@ -108,7 +114,7 @@ _update_profile() {
     return
   fi
 
-  $verbose && echo "- Profile dir: ${profile_dir}"
+  log "- Profile dir: ${profile_dir}"
 
   _list_profiles_and_parent "${profile_dir}" \
   | tsort \
