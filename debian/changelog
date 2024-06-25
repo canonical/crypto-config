@@ -1,3 +1,15 @@
+crypto-config (0.3ubuntu4) oracular; urgency=medium
+
+  * Fix non-verbose logs.
+
+ -- Adrien Nader <adrien.nader@canonical.com>  Tue, 25 Jun 2024 12:07:11 +0200
+
+crypto-config (0.3ubuntu2) oracular; urgency=medium
+
+  * Rebuild to pick up latest changes.
+
+ -- Adrien Nader <adrien.nader@canonical.com>  Fri, 14 Jun 2024 15:46:27 +0200
+
 crypto-config (0.3ubuntu1) oracular; urgency=medium
 
   * Use Architecture: all
