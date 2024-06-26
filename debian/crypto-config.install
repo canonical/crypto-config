@@ -1,2 +1,3 @@
 etc/* etc
 src/crypto-config usr/bin/
+src/crypto-config-hijack.sh usr/bin/
