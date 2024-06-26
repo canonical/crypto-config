@@ -3,4 +3,47 @@
 set -e
 set -u
 
-ln -sfn "$1" /etc/crypto-config/current
+STATE_DIR='/var/lib/crypto-config'
+STATE_PROFILES_DIR="${STATE_DIR}/profiles"
+
+CURRENT="${STATE_PROFILES_DIR}/current"
+
+help() {
+  cat << EOF
+Usage: crypto-config switch <profile>
+Switch the system-wide cryptography configuration profile.
+EOF
+}
+
+switch() {
+  local target
+
+  target="$1"
+
+  if ! [[ -d "${STATE_PROFILES_DIR}/$1" ]]; then
+    echo "'${target}' does not exist or is not a directory."
+    exit 1
+  fi
+
+  ln -sfn "${target}" "${CURRENT}"
+
+  echo "Profile switched to '${target}'."
+}
+
+show() {
+  basename "$(readlink "${CURRENT}")"
+}
+
+case "$1" in
+  -h|-help|--help|help|h)
+    help
+    ;;
+  switch)
+    shift
+    switch "$@"
+    ;;
+  show)
+    shift
+    show "$@"
+    ;;
+esac
