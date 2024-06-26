@@ -11,10 +11,11 @@ shopt -s inherit_errexit
 DESTDIR="${DESTDIR:-}"
 
 DEFAULT_PROFILE='default'
-DISTRO_PROFILES="${DISTRO_PROFILES:-/etc/crypto-config}"
+DATA_DIR='/usr/share/crypto-config'
+SYSTEM_PROFILES_DIR="${DATA_DIR}/profiles"
 # USER_PROFILES='user/crypto-config'
-# ALL_PROFILES="${DISTRO_PROFILES} ${USER_PROFILES}"
-ALL_PROFILES="${DISTRO_PROFILES}"
+# ALL_PROFILES="${SYSTEM_PROFILES_DIR} ${USER_PROFILES}"
+ALL_PROFILES="${SYSTEM_PROFILES_DIR}"
 STATE_DIR="${DESTDIR}/var/lib/crypto-config"
 STATE_PROFILES_DIR="${STATE_DIR}/profiles"
 
@@ -81,6 +82,7 @@ _reach_state() {
       log "    - source of truth"
       # Symlink to the directory where the profile lives: it is required to be
       # complete already, therefore we can use it directly
+      mkdir -p "${STATE_PROFILES_DIR}"
       ln -sfn "${profile_dir}/${profile}" "${STATE_PROFILES_DIR}/${profile}"
       return;;
   esac
@@ -152,6 +154,12 @@ triggered() {
   for profile_dir in ${ALL_PROFILES}; do
     _update_profile "${DESTDIR}${profile_dir}" "${apps[@]}"
   done
+
+  # Make 'current' point to 'default' if it doesn't exist or points to a
+  # non-existant file (basically -e uses stat(), not lstat())
+  if ! [ -e "${STATE_PROFILES_DIR}/current" ]; then
+    ln -s 'default' "${STATE_PROFILES_DIR}/current"
+  fi
 }
 
 case "$1" in

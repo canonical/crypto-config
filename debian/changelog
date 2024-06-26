@@ -1,3 +1,11 @@
+crypto-config (0.5ubuntu1) oracular; urgency=medium
+
+  * New release.
+    - Add hijack script
+    - default profile becomes populated (nginx, gnutls)
+
+ -- Adrien Nader <adrien.nader@canonical.com>  Wed, 26 Jun 2024 14:50:59 +0200
+
 crypto-config (0.3ubuntu1) oracular; urgency=medium
 
   * Use Architecture: all
