@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # This script is meant to be used when the postinst script is called with $1
-# set to triggered (this will require some minor adjustments)
+# set to 'configure' or 'triggered'
 
 set -e
 set -u
@@ -9,11 +9,14 @@ set -u
 shopt -s inherit_errexit
 
 DESTDIR="${DESTDIR:-}"
+
 DEFAULT_PROFILE='default'
 DISTRO_PROFILES="${DISTRO_PROFILES:-/etc/crypto-config}"
 # USER_PROFILES='user/crypto-config'
 # ALL_PROFILES="${DISTRO_PROFILES} ${USER_PROFILES}"
 ALL_PROFILES="${DISTRO_PROFILES}"
+STATE_DIR="${DESTDIR}/var/lib/crypto-config"
+STATE_PROFILES_DIR="${STATE_DIR}/profiles"
 
 verbose='false'
 
@@ -24,6 +27,8 @@ log() {
 }
 
 dirs_in() {
+  # Output the list of directories directly inside a given directory
+
   local d
   d="${1}"
 
@@ -31,6 +36,10 @@ dirs_in() {
 }
 
 _list_profiles_and_parent() {
+  # Output a list of profiles and their parent in the following format:
+  #   profile1 profile1_parent
+  #   profile2 profile2_parent
+
   local profile_dir
 
   profile_dir="$1"
@@ -39,6 +48,7 @@ _list_profiles_and_parent() {
 
     profile="$(basename "${profile}")"
 
+    # TODO: switch to the 'metadata.json' file rather than 'parent'
     echo "${profile}" | cat "${profile_dir}/${profile}/parent" -
 
   done
@@ -69,37 +79,46 @@ _reach_state() {
   case "${profile}" in
     "${DEFAULT_PROFILE}")
       log "    - source of truth"
+      # Symlink to the directory where the profile lives: it is required to be
+      # complete already, therefore we can use it directly
+      ln -sfn "${profile_dir}/${profile}" "${STATE_PROFILES_DIR}/${profile}"
       return;;
   esac
+
+  # Ensure the profile directory exists in the state directory
+  mkdir -p "${STATE_PROFILES_DIR}/${profile}"
 
   # Due to the call to tsort we couldn't easily keep the information on
   # where the profiles reside. Recover that.
   parent_profile="$(cat "${profile_dir}/${profile}/parent")"
-  if [ -e "${profile_dir}/${parent_profile}" ]; then
-    parent_profile_dir=".."
-  else
-    parent_profile_dir="${DESTDIR}${DISTRO_PROFILES}"
-  fi
 
   for app in "${apps[@]}"; do
 
-    link="${profile_dir}/${profile}/${app}"
-    target="${parent_profile_dir}/${parent_profile}/${app}"
-    if { [ "${parent_profile_dir}" = ".." ] && [ -e "$(realpath -m "${link}/../${target}")" ]; } || { [ -e "$(realpath -m "${target}")" ]; }; then
+    if [[ -z "${app}" ]]; then
+      continue
+    fi
+
+    src="${STATE_PROFILES_DIR}/${profile}/${app}"
+    target="${STATE_PROFILES_DIR}/${parent_profile}/${app}"
+
+    # If app profile exists in the parent profile, we create a symlink to there.
+    # If it doesn't, it means the symlink must not exist and must be removed if
+    # it does.
+    if [[ -e "$(realpath -m "${target}")" ]]; then
       log "    - ${app}: link to ${target}"
-      if ! [ -e "${link}" ]; then
-        ln -sfn "${target}" "${link}"
-      fi
+      ln -sfn "${target}" "${src}"
     else
-      if [ -e "${link}" ] || [ -L "${link}" ]; then
+      if [[ -e "${src}" ]] || [[ -L "${src}" ]]; then
         log "    - ${app}: remove"
       else
         log "    - ${app}: absent"
       fi
-      rm -f "${link}"
+      rm -f "${src}"
     fi
 
   done
+
+  # TODO: remove profiles that have been removed
 }
 
 _update_profile() {
@@ -115,6 +134,8 @@ _update_profile() {
   fi
 
   log "- Profile dir: ${profile_dir}"
+
+  # TODO: profile names must be unique across profile directories
 
   _list_profiles_and_parent "${profile_dir}" \
   | tsort \
