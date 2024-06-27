@@ -17,3 +17,8 @@ ln -sfn "${CURRENT}/gnutls.conf" '/etc/gnutls/config'
 echo 'nginx'
 sed -i '/ssl_protocols/ d' '/etc/nginx/nginx.conf'
 echo "include ${CURRENT}/nginx.conf.d/*.conf;" > '/etc/nginx/conf.d/crypto-config.conf'
+
+echo 'apt'
+for k in 'assert-pubkey-algo'; do
+  ln -sfn "${CURRENT}/apt.conf.d/${k}.conf" "/etc/apt/apt.conf.d/${k}.conf"
+done
