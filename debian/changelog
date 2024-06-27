@@ -1,3 +1,10 @@
+crypto-config (0.5.1ubuntu1) oracular; urgency=medium
+
+  * Add openssl and apt "future" profiles
+  * Rework postinst to always process all apps and fix direct links
+
+ -- Adrien Nader <adrien.nader@canonical.com>  Thu, 27 Jun 2024 12:29:13 +0200
+
 crypto-config (0.5ubuntu1) oracular; urgency=medium
 
   * New release. Test before releasing.
