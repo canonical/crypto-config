@@ -11,7 +11,7 @@ shopt -s inherit_errexit
 DESTDIR="${DESTDIR:-}"
 
 DEFAULT_PROFILE='default'
-DATA_DIR='/usr/share/crypto-config'
+DATA_DIR="${DESTDIR}/usr/share/crypto-config"
 SYSTEM_PROFILES_DIR="${DATA_DIR}/profiles"
 # USER_PROFILES='user/crypto-config'
 # ALL_PROFILES="${SYSTEM_PROFILES_DIR} ${USER_PROFILES}"
@@ -29,11 +29,12 @@ log() {
 
 dirs_in() {
   # Output the list of directories directly inside a given directory
+  find "${1}" -mindepth 1 -maxdepth 1 -type d -printf '%P\n'
+}
 
-  local d
-  d="${1}"
-
-  find "${d}" -mindepth 1 -maxdepth 1 -type d
+entries_in() {
+  # Output the list of directories directly inside a given directory
+  find "${1}" -mindepth 1 -maxdepth 1 -printf '%P\n'
 }
 
 _list_profiles_and_parent() {
@@ -46,8 +47,6 @@ _list_profiles_and_parent() {
   profile_dir="$1"
 
   for profile in $(dirs_in "${profile_dir}"); do
-
-    profile="$(basename "${profile}")"
 
     # TODO: switch to the 'metadata.json' file rather than 'parent'
     echo "${profile}" | cat "${profile_dir}/${profile}/parent" -
@@ -82,7 +81,6 @@ _reach_state() {
       log "    - source of truth"
       # Symlink to the directory where the profile lives: it is required to be
       # complete already, therefore we can use it directly
-      mkdir -p "${STATE_PROFILES_DIR}"
       ln -sfn "${profile_dir}/${profile}" "${STATE_PROFILES_DIR}/${profile}"
       return;;
   esac
@@ -100,23 +98,34 @@ _reach_state() {
       continue
     fi
 
-    src="${STATE_PROFILES_DIR}/${profile}/${app}"
-    target="${STATE_PROFILES_DIR}/${parent_profile}/${app}"
+    link="${STATE_PROFILES_DIR}/${profile}/${app}"
 
-    # If app profile exists in the parent profile, we create a symlink to there.
-    # If it doesn't, it means the symlink must not exist and must be removed if
-    # it does.
-    if [[ -e "$(realpath -m "${target}")" ]]; then
+    # If app profile exists in the current profile, use it.
+    # If not, if app profile exists in the parent profile, create a symlink to
+    # there.
+    # If it doesn't either, remove any existing symlink as there is no matching
+    # profile available anymore.
+
+    target="${profile_dir}/${profile}/${app}"
+    if [[ -e "${target}" ]]; then
       log "    - ${app}: link to ${target}"
-      ln -sfn "${target}" "${src}"
-    else
-      if [[ -e "${src}" ]] || [[ -L "${src}" ]]; then
-        log "    - ${app}: remove"
-      else
-        log "    - ${app}: absent"
-      fi
-      rm -f "${src}"
+      ln -sfn "${target}" "${link}"
+      continue
     fi
+
+    target="${STATE_PROFILES_DIR}/${parent_profile}/${app}"
+    if [[ -e "${target}" ]]; then
+      log "    - ${app}: link to ${target}"
+      ln -sfn "${target}" "${link}"
+      continue
+    fi
+
+    if [[ -e "${link}" ]] || [[ -L "${link}" ]]; then
+      log "    - ${app}: remove"
+    else
+      log "    - ${app}: absent"
+    fi
+    rm -f "${link}"
 
   done
 
@@ -147,18 +156,23 @@ _update_profile() {
 }
 
 triggered() {
-  local apps
+  local _triggers
 
-  apps=("$@")
+  # Not used anymore
+  _triggers=("$@")
+
+  mkdir -p "${STATE_PROFILES_DIR}"
+
+  mapfile -t apps < <(entries_in "${SYSTEM_PROFILES_DIR}/${DEFAULT_PROFILE}")
 
   for profile_dir in ${ALL_PROFILES}; do
-    _update_profile "${DESTDIR}${profile_dir}" "${apps[@]}"
+    _update_profile "${profile_dir}" "${apps[@]}"
   done
 
   # Make 'current' point to 'default' if it doesn't exist or points to a
   # non-existant file (basically -e uses stat(), not lstat())
   if ! [ -e "${STATE_PROFILES_DIR}/current" ]; then
-    ln -s 'default' "${STATE_PROFILES_DIR}/current"
+    ln -sfn 'default' "${STATE_PROFILES_DIR}/current"
   fi
 }
 
