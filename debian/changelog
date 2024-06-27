@@ -1,3 +1,9 @@
+crypto-config (0.5.1ubuntu2) oracular; urgency=medium
+
+  * Rebuild
+
+ -- Adrien Nader <adrien.nader@canonical.com>  Thu, 27 Jun 2024 15:27:19 +0200
+
 crypto-config (0.5.1ubuntu1) oracular; urgency=medium
 
   * Add openssl and apt "future" profiles
