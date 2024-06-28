@@ -68,7 +68,7 @@ _reach_state() {
   # This is because shell script makes it a fair bit difficult to do the
   # topological sort on profile names and keep track of which directory
   # they come from.
-  if ! [ -e "${profile_dir}/${profile}" ]; then
+  if ! [[ -e "${profile_dir}/${profile}" ]]; then
     return
   fi
 
@@ -76,14 +76,13 @@ _reach_state() {
 
   # The default profile has no parent by definition and does not need to be
   # modified since it is the single source of truth
-  case "${profile}" in
-    "${DEFAULT_PROFILE}")
-      log "    - source of truth"
-      # Symlink to the directory where the profile lives: it is required to be
-      # complete already, therefore we can use it directly
-      ln -sfn "${profile_dir}/${profile}" "${STATE_PROFILES_DIR}/${profile}"
-      return;;
-  esac
+  if [[ "${profile}" = "${DEFAULT_PROFILE}" ]]; then
+    log "    - source of truth"
+    # Symlink to the directory where the profile lives: it is required to be
+    # complete already, therefore we can use it directly
+    ln -sfn "${profile_dir}/${profile}" "${STATE_PROFILES_DIR}/${profile}"
+    return
+  fi
 
   # Ensure the profile directory exists in the state directory
   mkdir -p "${STATE_PROFILES_DIR}/${profile}"
@@ -140,7 +139,7 @@ _update_profile() {
   shift
   apps=("$@")
 
-  if ! [ -d "${profile_dir}" ]; then
+  if ! [[ -d "${profile_dir}" ]]; then
     return
   fi
 
@@ -171,7 +170,7 @@ triggered() {
 
   # Make 'current' point to 'default' if it doesn't exist or points to a
   # non-existant file (basically -e uses stat(), not lstat())
-  if ! [ -e "${STATE_PROFILES_DIR}/current" ]; then
+  if ! [[ -e "${STATE_PROFILES_DIR}/current" ]]; then
     ln -sfn 'default' "${STATE_PROFILES_DIR}/current"
   fi
 }
@@ -180,6 +179,8 @@ case "$1" in
   triggered|configure)
     shift
     triggered "$@"
+    ;;
+  *)
     ;;
 esac
 
