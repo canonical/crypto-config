@@ -2,6 +2,7 @@
 
 set -e
 set -u
+shopt -s inherit_errexit
 
 STATE_DIR='/var/lib/crypto-config'
 STATE_PROFILES_DIR="${STATE_DIR}/profiles"
@@ -10,8 +11,13 @@ CURRENT="${STATE_PROFILES_DIR}/current"
 
 help() {
   cat << EOF
-Usage: crypto-config switch <profile>
-Switch the system-wide cryptography configuration profile.
+Usage: crypto-config <command> ...
+System-wide cryptography configuration profile management
+
+Commands:
+  get
+  status
+  switch <profile>
 EOF
 }
 
@@ -30,20 +36,36 @@ switch() {
   echo "Profile switched to '${target}'."
 }
 
-show() {
+get() {
   basename "$(readlink "${CURRENT}")"
+}
+
+status() {
+  local current
+
+  current="$(get)"
+
+  printf "Current profile in '%s'\n" "${current}"
 }
 
 case "$1" in
   -h|-help|--help|help|h)
     help
     ;;
+  get)
+    shift
+    get "$@"
+    ;;
+  status)
+    shift
+    status "$@"
+    ;;
   switch)
     shift
     switch "$@"
     ;;
-  show)
-    shift
-    show "$@"
+  *)
+    printf "Unknown command '%s'\n" "$1"
+    help
     ;;
 esac

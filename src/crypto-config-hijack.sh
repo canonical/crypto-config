@@ -20,6 +20,8 @@ sed -i '/ssl_protocols/ d' '/etc/nginx/nginx.conf'
 echo "include ${CURRENT}/nginx.conf.d/*.conf;" > '/etc/nginx/conf.d/crypto-config.conf'
 
 echo 'apt'
-for k in 'assert-pubkey-algo'; do
+declare -a keys
+keys=('assert-pubkey-algo')
+for k in "${keys[@]}"; do
   ln -sfn "${CURRENT}/apt.conf.d/${k}.conf" "/etc/apt/apt.conf.d/${k}.conf"
 done
