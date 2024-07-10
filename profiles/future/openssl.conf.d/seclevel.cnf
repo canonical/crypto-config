@@ -1,6 +1,6 @@
-[ default_conf ]
+[ openssl_init ]
 
-openssl_init = ssl_sect
+ssl_conf = ssl_sect
 
 [ssl_sect]
 
