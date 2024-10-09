@@ -44,11 +44,17 @@ log() {
 
 dirs_in() {
   # Output the list of directories directly inside a given directory
-  find "${1}" -mindepth 1 -maxdepth 1 -type d -printf '%P\n'
+  # Depth limit is 2. It was 1 in order to avoid picking applications'
+  # directories but 2 is useful to be able to use "debian/foo" or "ubuntu/bar".
+  # It could be higher but let's raise it or remove it only when the 'parent'
+  # file is replace with 'metadata.json' (possibly with a better name) and we
+  # make sure 'metadata.json' is really for crypto-config and not a random file
+  # with the same name.
+  find "${1}" -mindepth 1 -maxdepth 2 -type d -printf '%P\n'
 }
 
 entries_in() {
-  # Output the list of directories directly inside a given directory
+  # Output the directory entries directly inside a given directory
   find "${1}" -mindepth 1 -maxdepth 1 -printf '%P\n'
 }
 
@@ -62,6 +68,10 @@ _list_profiles_and_parent() {
   profile_dir="$1"
 
   for profile in $(dirs_in "${profile_dir}"); do
+    # Ensure we only iterate on directories which can be valid profiles
+    if [[ "${profile}" != 'default' ]] && ! [[ -e "${profile_dir}/${profile}/parent" ]]; then
+      continue
+    fi
 
     # TODO: switch to the 'metadata.json' file rather than 'parent'
     echo "${profile}" | cat "${profile_dir}/${profile}/parent" -
@@ -184,7 +194,7 @@ triggered() {
   done
 
   # Make 'current' point to 'default' if it doesn't exist or points to a
-  # non-existant file (basically -e uses stat(), not lstat())
+  # non-existant file (works because -e uses stat(), not lstat())
   if ! [[ -e "${STATE_PROFILES_DIR}/current" ]]; then
     ln -sfn 'default' "${STATE_PROFILES_DIR}/current"
   fi
