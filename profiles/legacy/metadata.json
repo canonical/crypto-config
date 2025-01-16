@@ -1,0 +1,8 @@
+{
+  "pretty-name": "legacy",
+  "summary": "Profile for compatibility with legacy systems",
+  "description": "",
+  "maintainer": "Maintainers of the crypto-config package",
+  "parent": "default",
+  "condition": "true"
+}

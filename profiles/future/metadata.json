@@ -1,0 +1,8 @@
+{
+  "pretty-name": "future",
+  "summary": "This profile will be used in future releases",
+  "description": "",
+  "maintainer": "Maintainers of the crypto-config package",
+  "parent": "like-default",
+  "condition": "true"
+}
