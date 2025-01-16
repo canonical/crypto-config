@@ -46,10 +46,8 @@ dirs_in() {
   # Output the list of directories directly inside a given directory
   # Depth limit is 2. It was 1 in order to avoid picking applications'
   # directories but 2 is useful to be able to use "debian/foo" or "ubuntu/bar".
-  # It could be higher but let's raise it or remove it only when the 'parent'
-  # file is replace with 'metadata.json' (possibly with a better name) and we
-  # make sure 'metadata.json' is really for crypto-config and not a random file
-  # with the same name.
+  # It could be higher once we can make sure 'metadata.json' is really for
+  # crypto-config and not a random file with the same name.
   find "${1}" -mindepth 1 -maxdepth 2 -type d -printf '%P\n'
 }
 
@@ -60,8 +58,8 @@ entries_in() {
 
 _list_profiles_and_parent() {
   # Output a list of profiles and their parent in the following format:
-  #   profile1 profile1_parent
-  #   profile2 profile2_parent
+  #   profile1_parent profile1
+  #   profile2_parent profile2
 
   local profile_dir
 
@@ -74,8 +72,7 @@ _list_profiles_and_parent() {
     fi
 
     # TODO: switch to the 'metadata.json' file rather than 'parent'
-    echo "${profile}" | cat "${profile_dir}/${profile}/parent" -
-
+    jq -r '"\(.parent) '"${profile}"'"' < "${profile_dir}/${profile}/metadata.json"
   done
 }
 
@@ -114,7 +111,7 @@ _reach_state() {
 
   # Due to the call to tsort we couldn't easily keep the information on
   # where the profiles reside. Recover that.
-  parent_profile="$(cat "${profile_dir}/${profile}/parent")"
+  parent_profile="$(jq '.parent' < "${profile_dir}/${profile}/metadata.json")"
 
   for app in "${apps[@]}"; do
 

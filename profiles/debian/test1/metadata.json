@@ -1,0 +1,8 @@
+{
+  "pretty-name": "test1",
+  "summary": "A profile stored in a sub-directory as a demo",
+  "description": "",
+  "maintainer": "Maintainers of the crypto-config package",
+  "parent": "default",
+  "condition": "true"
+}

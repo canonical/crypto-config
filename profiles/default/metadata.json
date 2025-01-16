@@ -1,0 +1,8 @@
+{
+  "pretty-name": "default",
+  "summary": "The default profile",
+  "description": "",
+  "maintainer": "Maintainers of the crypto-config package",
+  "parent": "default",
+  "condition": "true"
+}
