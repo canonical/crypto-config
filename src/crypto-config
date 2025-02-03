@@ -233,7 +233,7 @@ status() {
   printf "Current profile in '%s'\n" "${current}"
 }
 
-case "$1" in
+case "${1:-help}" in
   -h|-help|--help|help|h)
     help
     ;;
