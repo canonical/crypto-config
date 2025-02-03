@@ -52,6 +52,9 @@ interactive use rather than for scriptiing.
 ### switch \<profile\>
 Use this profile.
 
+## Specification
+
+The full specification lives on [discourse.ubuntu.com](https://discourse.ubuntu.com/t/spec-crypto-config-a-framework-to-manage-crypto-related-configurations-system-wide/54265/1) and is also [copied in this repository](docs/crypto-config-specification.md).
 
 ## Introduction to crypto-config
 
