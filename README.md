@@ -9,6 +9,26 @@ This repository contains the framework. Profile data is to be stored directly
 inside each package. As an exception, during early days, this repository also
 contains profile data in order to avoid a chicken-and-egg situation.
 
+# Table of contents
+
+- [Package support](#package-support)
+- [Profiles](#profiles)
+- [Paths](#paths)
+- [/usr/bin/crypto-config](#usrbincrypto-config)
+  - [get](#get)
+  - [status](#status)
+  - [switch \<profile\>](#switch-profile)
+- [Specification](#specification)
+- [Introduction to crypto-config](#introduction-to-crypto-config)
+  - [A practical example](#a-practical-example)
+  - [What profiles are](#what-profiles-are)
+  - [How profiles are stored and selected](#how-profiles-are-stored-and-selected)
+  - [Inheritance and generation of runtime data](#inheritance-and-generation-of-runtime-data)
+  - [Making software read from `crypto-config` profiles](#making-software-read-from-crypto-config-profiles)
+  - [Compared to `alternatives`](#compared-to-alternatives)
+- [Bug reports](#bug-reports)
+- [License](#license)
+
 ## Package support
 
 Every package with **specific** configuration options needs to be modified in
