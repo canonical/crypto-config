@@ -1,8 +1,8 @@
 # Crypto-config
 
-A configuration management framework to manage the configuration of
-cryptography on a system by using system-wide profiles. It is is gradually
-being rolled out in Ubuntu.
+A configuration management framework for cryptography using system-wide
+profiles that are switched atomically. It is gradually being rolled out in
+Ubuntu.
 
 This repository contains the framework. Profile data is to be stored directly
 inside each package. As an exception during early days, this repository may
