@@ -1,63 +1,104 @@
 # Crypto-config
 
-A configuration management framework designed to cover system-wide cryptography configuration.
-
-Crypto-config lets users chose their system-wide cryptography configuration
-using profiles. Coverage is limited so far but will increase over time.
+A configuration management framework to manage the configuration of
+cryptography on a system by using system-wide profiles. It is is gradually
+being rolled out in Ubuntu.
 
 This repository contains the framework. Profile data is to be stored directly
-inside each package. As an exception, during early days, this repository also
-contains profile data in order to avoid a chicken-and-egg situation.
+inside each package. As an exception during early days, this repository may
+also contain profile data in order to avoid a chicken-and-egg situation.
 
 # Table of contents
 
-- [Package support](#package-support)
-- [Profiles](#profiles)
-- [Paths](#paths)
-- [/usr/bin/crypto-config](#usrbincrypto-config)
+- [Example](#example)
+- [Sources of the configuration with `crypto-config`](#sources-of-the-configuration-with-crypto-config)
+- [What profiles are](#what-profiles-are)
+- [Usage of /usr/bin/crypto-config](#usage-of-usrbincrypto-config)
   - [get](#get)
   - [status](#status)
   - [switch \<profile\>](#switch-profile)
-- [Specification](#specification)
-- [Introduction to crypto-config](#introduction-to-crypto-config)
-  - [A practical example](#a-practical-example)
-  - [What profiles are](#what-profiles-are)
-  - [How profiles are stored and selected](#how-profiles-are-stored-and-selected)
+- [Implementation and porting](#implementation-and-porting)
+  - [Profile storage and switch](#profile-storage-and-switch)
   - [Inheritance and generation of runtime data](#inheritance-and-generation-of-runtime-data)
   - [Making software read from `crypto-config` profiles](#making-software-read-from-crypto-config-profiles)
-  - [Compared to `alternatives`](#compared-to-alternatives)
+- [Specification](#specification)
 - [Bug reports](#bug-reports)
 - [License](#license)
 
-## Package support
+## Example
 
-Every package with **specific** configuration options needs to be modified in
-order to ship the relevant configuration files.
+Consider two profiles: `default` and `future`. The `future` one disables
+TLS < 1.3 and RSA < 4096.
 
-Modifying libraries can provide coverage for all their dependants at once and
-modifying applications enables finer control.
+Configure an `nginx` server with TLS and use `sslscan` to check its
+configuration; the output will contain the following:
 
-## Profiles
+    # sslscan 127.0.0.1
+    ...
+    TLSv1.2   enabled
+    TLSv1.3   enabled
 
-Profiles are sets of configuration files for the packages enrolled in this
-scheme.
+Switch to the `future` profile from `crypto-config:
 
-## Paths
+    crypto-config switch future
 
-Packages install profiles in `/usr/share/crypto-config/profiles/<profile-name>`.
+Restart `nginx` and use `sslscan` again.
 
-A postinst script is triggered by dpkg when this directory is modified and
-re-creates the hierarchy in `/var/lib/crypto-config` and implements inheritance
-between profiles.
-The `debian/crypto-config.postinst` closely implements the specification for
-profiles except that it does not use a `metadata.json` file to store the
-inheritance data (the file will include more metadata over time).
+    systemctl restart nginx
+    sslscan 127.0.0.1
+    ...
+    TLSv1.2   disabled
+    TLSv1.3   enabled
 
-Toplevel package configuration typically uses `include`-like directives to
-read the configurations files stored in `/var/lib/crypto-config` although other
-means are possible.
+## Sources of the configuration with `crypto-config`
 
-## /usr/bin/crypto-config
+There are two ways a program such as `nginx` is configured in practice. The
+paths below refer to the files used with `crypto-config` specifically.
+
+First, through its own configuration:
+
+    nginx
+    ⬇️
+    /etc/nginx/nginx.conf
+    ⬇️
+    /etc/nginx/conf.d/crypto-config.conf
+    ⬇️
+    /var/lib/crypto-config/profiles/current/nginx.conf.d/*.conf
+    ⬇️
+    /var/lib/crypto-config/profiles/current/nginx.conf.d/ssl.conf
+
+But some of its features are also impacted by the configuration of its
+dependencies:
+
+    nginx
+    ⬇️
+    /etc/ssl/openssl.cnf
+    ⬇️
+    /var/lib/crypto-config/profiles/current/openssl.conf.d
+    ⬇️
+    /var/lib/crypto-config/profiles/current/openssl.conf.d/seclevel.cnf
+
+## What profiles are
+
+Crypto-config profiles are made of drop-in files and configuration fragments.
+You can think of a profile as a subset of configuration files on your system,
+and choosing a profile as atomically switching these to alternative ones.
+
+Distributions should come up with a list of profiles and the intent for each of
+them. Typical examples include `default`, `legacy` and `future`:
+
+- `default` would match what is already being done at the moment,
+- `legacy` tweaks `default` to increase compatibility with legacy systems,
+- `future` tweaks `default` to increase security and uses settings that are
+  expected to become the default ones in the future.
+
+The core goal is to have various software configured in a consistent and
+meaningful way. For instance, a profile that disables a protocol for openssl
+should disable it for gnutls too. However, it is also understandable that an
+algorithm is disabled for HTTPS servers but enabled for SMTP ones because they
+live in two different ecosystems.
+
+## Usage of /usr/bin/crypto-config
 
 The crypto-config binary currently accepts three commands: `get`, `status` and
 `switch <profile>`'.
@@ -72,64 +113,9 @@ interactive use rather than for scriptiing.
 ### switch \<profile\>
 Use this profile.
 
-## Specification
+## Implementation and porting
 
-The full specification lives on [discourse.ubuntu.com](https://discourse.ubuntu.com/t/spec-crypto-config-a-framework-to-manage-crypto-related-configurations-system-wide/54265/1) and is also [copied in this repository](docs/crypto-config-specification.md).
-
-## Introduction to crypto-config
-
-Crypto-config is an optional framework for managing the configuration of
-cryptography in software in a distribution as consistent profiles. It being
-optional is important for ease of inclusion as it does not require migrating
-everything at once and ensures that systems would not become unusable if
-something wrong happened.
-
-### A practical example
-
-Imagine two profiles: `default` and `future`. The future one may disable
-TLS < 1.3 and RSA < 4096.
-
-Usage is simply
-
-    crypto-config switch future
-
-Then, restart e.g. `nginx` and use `sslscan` to check its configuration:
-
-    systemctl restart nginx
-    sslscan 127.0.0.1 | grep 'TLS.*abled'
-
-This would show:
-
-    TLSv1.0   disabled
-    TLSv1.1   disabled
-    TLSv1.2   disabled
-    TLSv1.3   enabled
-
-### What profiles are
-
-Crypto-config uses so-called profiles which are sets of drop-ins and
-configuration fragments, for each software to configure specifically.
-Crypto-config doesn't impose constraints on the file layout by itself. If some
-software understands drop-ins directories, use that; if it only understands
-including a file directly, use that; if it doesn't support any of that, fix it
-(this is luckily a very uncommon situation nowadays).
-
-There is no general mandate for profiles. It is expected that distributions
-come up with a list of profiles and the intent for each of them. Typical
-examples include `default`, `legacy` and `future`:
-
-- `default` would match what is already being done at the moment,
-- `legacy` tweaks `default` to increase compatibility with legacy systems,
-- `future` tweaks `default` to increase security and uses settings that are
-  expected to become the default ones in the future.
-
-A core goal is to have various software configured in a consistent and
-meaningful way. For instance, a profile that disables a protocol for openssl
-should disable it for gnutls too. However, it is also understandable that an
-algorithm is disabled for HTTPS servers but enabled for SMTP ones because they
-live in two different ecosystems.
-
-### How profiles are stored and selected
+### Profile storage and switch
 
 The profiles are stored in `/var/lib/crypto-config/profiles`.
 
@@ -138,16 +124,15 @@ chosen profile. The profile switch is the atomic change of the symlink target.
 
 ### Inheritance and generation of runtime data
 
-It's possible to skip the configuration for some software when creating a
+It is possible to skip the configuration for some software when creating a
 profile: it will be inherited from the profile's parent through an inheritance
 mechanism.
 
 Packages install profile data under `/usr/share/crypto-config/profiles/`.
 
-After installation, a short and idempotent program resolves fills in the
-skipped data using based on the inheritance relationship. The result is then
-stored in `/var/lib/crypto-config/profiles` and is ready to be used by
-software.
+After installation, a short (and idempotent) program fills in the skipped data
+using based on the inheritance relationship. The result is then stored in
+`/var/lib/crypto-config/profiles` and is ready to be used by software.
 
 ### Making software read from `crypto-config` profiles
 
@@ -163,7 +148,7 @@ As an example, for openssl, the following has been added at the end of
 
     .include /var/lib/crypto-config/profiles/current/openssl.conf.d
 
-Of course, this will have an actual effect when there is something in that
+Of course, this will only have an actual effect when there is something in that
 directory.
 
 It's more convenient to not fail when the target directory or file does not
@@ -173,32 +158,17 @@ exist. For instance, enabling `crypto-config` for nginx uses
     include /var/lib/crypto-config/profiles/current/nginx.conf.d/*.conf;
 
 Nginx refuses to start if it is instructed to `include` a non-existing file for
-its configuration. However, if there is a wildcard in the path, it is fine that
-there is no matching file. Therefore it is probably better practice to ensure
-there is one.
+its configuration. However, if there is a wildcard in the path, it accepts that
+there is no matching file.
 
 These small changes to configuration are to be done by package maintainers and
 as they should make the best judgement. Similarly, packagers provide
 configuration snippets for the various profiles that it makes sense for them to
 support directly.
 
-### Compared to `alternatives`
+## Specification
 
-While `alternatives` and `crypto-config` use a symlink to enable administrators
-to select one element among others, they have been designed for different use
-cases and at different times.
-
-All features besides changing the target of a symlink are not used for
-crypto-config. This is a good indication that the two have more differences
-that commonalities.
-
-I am not aware of any use of `alternatives` for configuration, only for
-« determining default commands » (as the manpage of `update-alternatives`
-says).
-
-Finally, `crypto-config` stores data under `/var/lib` rather than under `/etc`
-because there is data generated (hence it should be under `/var/lib`) and this
-also avoids hindering progress on empty `/etc` directories.
+The full specification lives on [discourse.ubuntu.com](https://discourse.ubuntu.com/t/spec-crypto-config-a-framework-to-manage-crypto-related-configurations-system-wide/54265/1) and is also [copied in this repository](docs/crypto-config-specification.md).
 
 ## Bug reports
 Please file bug reports in [Launchpad](https://bugs.launchpad.net/crypto-config).
