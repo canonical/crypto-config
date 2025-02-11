@@ -11,6 +11,10 @@ also contain profile data in order to avoid a chicken-and-egg situation.
 # Table of contents
 
 - [Example](#example)
+- [Usecases](#usecases)
+  - [Hardening and compliance](#hardening-and-compliance)
+  - [Large-scale environments](#large-scale-environments)
+  - [Best-practices tracking](#best-practices-tracking)
 - [Sources of the configuration with `crypto-config`](#sources-of-the-configuration-with-crypto-config)
 - [What profiles are](#what-profiles-are)
 - [Usage of /usr/bin/crypto-config](#usage-of-usrbincrypto-config)
@@ -49,6 +53,47 @@ Restart `nginx` and use `sslscan` again.
     ...
     TLSv1.2   disabled
     TLSv1.3   enabled
+
+## Usecases
+
+### Hardening and compliance
+
+Distributions need to find the balance between compatibility and security. Some
+legacy systems do not understand newer protocols and algorithms. Crypto-config
+profiles can be made for hardening or compliance purposes. In addition, it is
+possible to derive customized profiles for these in order to re-enable a given
+algorithm if needed (for instance because you still need to keep compatibility
+with that old box you can't get rid of).
+
+Since `crypto-config` profiles use inheritance and are stored in unified
+locations, customisations are easier to spot and maintain over extended periods
+of time.
+
+### Large-scale environments
+
+System administrators for large networks will probably appreciate the ability
+to create unified configuration for all machines.
+
+Since these stocks are most likely heterogeneous and cannot be all upgraded at
+once, it can be useful to design a profile and do a progressive roll-out across
+machines. Moreover, profiles with modern configuration options can be
+customised to keep some legacy algorithms enabled until not needed anymore.
+
+### Best-practices tracking
+
+After release, Ubuntu versions strive to preserve compatibility. This typically
+means not disabling a cryptographic algorithm as that would prevent data
+exchange in some situations. This can be at odds with security when an
+algorithm is found to be broken or almost broken.
+
+A proposal for Ubuntu is to keep the `default` profile unchanged over time. The
+experience of most users would therefore be unchanged. However, other profiles
+may be updated. As such, profiles such as `modern` could be updated over time
+to avoid actually becoming a `legacy` profile after a few years.
+
+In addition, changes to the profiles could be staged in dedicated profiles such
+as `modern-incoming`. Having too many profiles would be detrimental but
+incoming variants would carry differences only for maybe six months or so.
 
 ## Sources of the configuration with `crypto-config`
 
