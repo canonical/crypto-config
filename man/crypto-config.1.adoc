@@ -1,0 +1,37 @@
+= crypto-config(1)
+:author: Adrien Nader
+:email: adrien.nader@canonical.com
+:version: v0.7.0
+:doctype: manpage
+:manmanual: crypto-config
+:mansource: crypto-config
+
+== Name
+
+crypto-config - display and manage crypto-config profiles
+
+== Synopsis
+
+*crypto-config* [_COMMAND_]...
+
+== Commands
+
+*get*::
+Return the profile currently in use.
+
+*status*::
+Show the profile currently in use. May show more in the future. This is meant
+for interactive use rather than for scripting.
+
+*switch* _PROFILE_::
+Use this profile.
+
+== Resources
+
+*Web site:* https://github.com/canonical/crypto-config
+
+== Copying
+
+Copyright (C) 2024-2025 {author} {email}. +
+
+This software is released under the terms of the GNU General Public License, Version 3.

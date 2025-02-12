@@ -149,11 +149,11 @@ The crypto-config binary currently accepts three commands: `get`, `status` and
 `switch <profile>`'.
 
 ### get
-Return the current profile in use.
+Return the profile currently in use.
 
 ### status
-Show the current profile in use. May show more in the future. This is meant for
-interactive use rather than for scriptiing.
+Show the profile currently in use. May show more in the future. This is meant
+for interactive use rather than for scripting.
 
 ### switch \<profile\>
 Use this profile.

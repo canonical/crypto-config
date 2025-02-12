@@ -5,10 +5,11 @@ Maintainer: Adrien Nader <adrien.nader@canonical.com>
 Rules-Requires-Root: no
 Build-Depends:
  debhelper-compat (= 13),
+ asciidoctor,
 Standards-Version: 4.6.2
-Homepage: https://gitlab.com/crypto-config/crypto-config
-Vcs-Browser: https://gitlab.com/crypto-config/crypto-config
-Vcs-Git: https://gitlab.com/crypto-config/crypto-config.git
+Homepage: https://www.github.com/canonical/crypto-config
+Vcs-Browser: https://www.github.com/canonical/crypto-config
+Vcs-Git: https://www.github.com/canonical/crypto-config.git
 
 Package: crypto-config
 Architecture: all
