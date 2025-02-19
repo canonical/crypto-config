@@ -1,0 +1,7 @@
+version=4
+
+# From https://wiki.debian.org/debian/watch#GitHub
+opts=downloadurlmangle=s/archive\/refs\/tags\/v(.*)\.tar\.gz/releases\/download\/v$1\/@PACKAGE@-$1\.tar\.xz/,\
+    pgpsigurlmangle=s/$/.asc/ \
+    https://github.com/canonical/@PACKAGE@/tags \
+    (?:.*?/)?v?@ANY_VERSION@@ARCHIVE_EXT@
