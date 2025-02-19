@@ -1,0 +1,51 @@
+apt() {
+  lxc exec cc-demo -- apt-get -yqq "$@"
+}
+
+initial_setup() {
+  lxc delete -f cc-demo
+  lxc launch ubuntu-daily:oracular cc-demo
+  sleep 3
+  apt update
+  apt install libssl3t64
+  lxc exec cc-demo -- add-apt-repository --yes ppa:adrien/crypto-config
+  apt install nginx ssl-cert sslscan crypto-config &>/dev/null
+  lxc exec cc-demo -- sed -i \
+    -e '/listen .*80 default_server/ s/listen/# listen/' \
+    -e '/listen .*443 ssl default_server/ s/# //' \
+    -e '/# include snippets\/snakeoil.conf;/ s/# //' \
+  /etc/nginx/sites-available/default
+  lxc exec cc-demo -- crypto-config-hijack.sh
+  lxc exec cc-demo -- systemctl restart nginx
+}
+
+initial_setup
+
+lxc shell cc-demo
+
+# apt
+
+add-apt-repository --yes ppa:videolan/master-daily
+crypto-config switch legacy
+apt update
+
+crypto-config switch future
+apt update
+
+# nginx
+
+sslscan --no-color 127.0.0.1 > default
+
+crypto-config switch future
+nginx -t
+
+# Change the configuration and force regenerate the certificate
+sed -i 's/2048/4096/' /usr/share/ssl-cert/ssleay.cnf && make-ssl-cert -f generate-default-snakeoil && systemctl restart nginx && sslscan --no-color 127.0.0.1 > future
+
+view -d default future
+
+# under the hood
+
+view $(which crypto-config-hijack.sh)
+
+ls -lhR --color /var/lib/crypto-config | grep -C99 /usr
