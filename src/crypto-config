@@ -65,7 +65,7 @@ _list_profiles_and_parent() {
 
   for profile in $(dirs_in "${profile_dir}"); do
     # Ensure we only iterate on directories which can be valid profiles
-    if [[ "${profile}" != 'default' ]] && ! [[ -e "${profile_dir}/${profile}/parent" ]]; then
+    if [[ "${profile}" != 'default' ]] && ! [[ -e "${profile_dir}/${profile}/metadata.json" ]]; then
       continue
     fi
 
