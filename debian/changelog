@@ -1,3 +1,22 @@
+crypto-config (0.7.2-0ubuntu1) plucky; urgency=medium
+
+  * New release.
+
+ -- Adrien Nader <adrien.nader@canonical.com>  Fri, 21 Feb 2025 13:00:24 +0100
+
+crypto-config (0.7.0-0ubuntu1) plucky; urgency=medium
+
+  * New release.
+    - Add asciidoctor to Build-Depends.
+    - Make package non-native
+    - Typos in openssl config for future.
+    - Apt fixes
+    - Add legacy profile
+    - Add openssl and apt "future" profiles
+    - Rework postinst to always process all apps and fix direct links
+
+ -- Adrien Nader <adrien.nader@canonical.com>  Wed, 12 Feb 2025 14:53:24 +0100
+
 crypto-config (0.5ubuntu1) oracular; urgency=medium
 
   * New release.
