@@ -1,7 +1,16 @@
 version=4
 
 # From https://wiki.debian.org/debian/watch#GitHub
-opts=downloadurlmangle=s/archive\/refs\/tags\/v(.*)\.tar\.gz/releases\/download\/v$1\/@PACKAGE@-$1\.tar\.xz/,\
-    pgpsigurlmangle=s/$/.asc/ \
+opts=\
+    pgpsigurlmangle=s/archive\/refs\/tags\/v(.*)\.tar\.gz/releases\/download\/v$1\/v$1.tar.gz.asc/ \
     https://github.com/canonical/@PACKAGE@/tags \
     (?:.*?/)?v?@ANY_VERSION@@ARCHIVE_EXT@
+
+# Generate tarball with
+#   tag=0.7.2
+#   git tag -m "${tag}" -s "v${tag}"
+#   git -c tar.tar.gz.command='gzip -cn' archive --format=tar.gz --prefix="crypto-config-${tag}/" -o "../v${tag}.tar.gz" "v${tag}"
+#   gpg --armor --detach-sign ../v${tag}.tar.gz
+#   gpg --verify ../v${tag}.tar.gz.asc
+# Push the tag and from the github.com UI, create a release with the .asc file
+# uploaded
