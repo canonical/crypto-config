@@ -1,7 +1,8 @@
 Source: crypto-config
 Section: admin
 Priority: optional
-Maintainer: Adrien Nader <adrien.nader@canonical.com>
+Maintainer: Ubuntu Developers <ubuntu-devel-discuss@lists.ubuntu.com>
+XSBC-Original-Maintainer: Adrien Nader <adrien.nader@canonical.com>
 Rules-Requires-Root: no
 Build-Depends:
  debhelper-compat (= 13),
