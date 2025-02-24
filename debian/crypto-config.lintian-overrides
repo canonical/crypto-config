@@ -1,0 +1,4 @@
+# crypto-config-hijack.sh is intended to go away in future and thus does not
+# need a man-page
+crypto-config: no-manual-page [usr/bin/crypto-config-hijack.sh]
+crypto-config: script-with-language-extension [usr/bin/crypto-config-hijack.sh]

@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 #
 # Copyright (C) 2023-2024 Canonical, Ltd.
 # Author: Adrien Nader <adrien.nader@canonical.com>
@@ -20,8 +20,6 @@
 
 set -e
 set -u
-
-shopt -s inherit_errexit
 
 case "$1" in
   triggered|configure)
