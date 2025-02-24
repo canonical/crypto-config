@@ -1,1 +1,1 @@
-interest-await /etc/crypto-config
+interest-noawait /etc/crypto-config
