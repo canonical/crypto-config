@@ -14,7 +14,7 @@ initial_setup() {
     -e '/listen .*80 default_server/ s/listen/# listen/' \
     -e '/listen .*443 ssl default_server/ s/# //' \
     -e '/# include snippets\/snakeoil.conf;/ s/# //' \
-  /etc/nginx/sites-available/default
+    /etc/nginx/sites-available/default
   lxc exec cc-demo -- crypto-config-hijack.sh
   lxc exec cc-demo -- systemctl restart nginx
 }

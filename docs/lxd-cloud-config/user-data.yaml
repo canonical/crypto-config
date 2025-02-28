@@ -1,0 +1,22 @@
+#cloud-config
+
+package_update: true
+package_upgrade: true
+
+packages:
+  - crypto-config
+  - nginx
+  - ssl-cert
+
+runcmd:
+  - sed -i -e '/listen .*80 default_server/ s/listen/# listen/' -e '/listen .*443 ssl default_server/ s/# //' -e '/# include snippets\/snakeoil.conf;/ s/# //' /etc/nginx/sites-available/default
+  - sed -i '/ssl_protocols/ d' '/etc/nginx/nginx.conf'
+  - echo 'include /var/lib/crypto-config/profiles/current/nginx.conf.d/*.conf;' > '/etc/nginx/conf.d/crypto-config.conf'
+  - sed -i 's/2048/4096/' '/usr/share/ssl-cert/ssleay.cnf'
+  - make-ssl-cert -f generate-default-snakeoil
+  - sed -i '/parent_profile/ s/jq/jq -r/'
+  - mkdir -p '/usr/share/crypto-config/profiles/default/openssl.conf.d'
+  - crypto-config generate-runtime-profiles
+  - crypto-config switch {crypto_config_profile}
+  - crypto-config status
+  - systemctl restart nginx
