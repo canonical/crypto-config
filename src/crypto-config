@@ -109,7 +109,7 @@ _reach_state() {
 
   # Due to the call to tsort we couldn't easily keep the information on
   # where the profiles reside. Recover that.
-  parent_profile="$(jq '.parent' < "${profile_dir}/${profile}/metadata.json")"
+  parent_profile="$(jq -r '.parent' < "${profile_dir}/${profile}/metadata.json")"
 
   for app in "${apps[@]}"; do
 
