@@ -27,3 +27,9 @@ echo 'Wait for the web server to serve requests'
 while ! curl -s -k "https://$ipv4" >/dev/null; do sleep 1; done
 
 sslscan "$ipv4"
+
+# It seems that exim listens on interfaces which are identified by their IP
+# rather than by their name...
+lxc exec cc-test -- sh -c 'sed -i "/dc_local_interfaces/ s/;/; $(ip -4 --json a s dev eth0  | jq -r ".[0].addr_info[0].local");/" /etc/exim4/update-exim4.conf.conf'
+lxc exec cc-test systemctl restart exim4
+sslscan --starttls-smtp --sleep=60 "$ipv4"
