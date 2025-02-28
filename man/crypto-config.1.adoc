@@ -1,7 +1,8 @@
 = crypto-config(1)
 :author: Adrien Nader
 :email: adrien.nader@canonical.com
-:version: v0.7.0
+:revdate: 2025-02-21
+:revnumber: v0.7.3
 :doctype: manpage
 :manmanual: crypto-config
 :mansource: crypto-config
@@ -32,6 +33,6 @@ Use this profile.
 
 == Copying
 
-Copyright (C) 2024-2025 {author} {email}. +
+Copyright (C) 2023-2025 Canonical, Ltd
 
 This software is released under the terms of the GNU General Public License, Version 3.
