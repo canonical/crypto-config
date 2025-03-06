@@ -1,3 +1,9 @@
+crypto-config (0.7.4-0ubuntu1) plucky; urgency=medium
+
+  * New upstream release
+
+ -- Adrien Nader <adrien.nader@canonical.com>  Thu, 06 Mar 2025 21:40:39 +0100
+
 crypto-config (0.7.3-0ubuntu1) plucky; urgency=medium
 
   * Initial upload to Ubuntu (LP: #2098879)
