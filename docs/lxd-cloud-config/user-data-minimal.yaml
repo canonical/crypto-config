@@ -5,8 +5,6 @@ package_upgrade: true
 
 packages:
   - crypto-config
-  - nginx
-  - ssl-cert
 
 runcmd:
   - crypto-config switch {crypto_config_profile}

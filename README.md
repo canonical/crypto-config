@@ -56,6 +56,32 @@ Restart `nginx` and use `sslscan` again.
 
 ## Usecases
 
+### Start a container with the right profile from install-time with cloud-init
+
+A few lines of `cloud-config` configuration are enough to install crypto-config
+and select a profile. Considering a file named `user-data.yaml` which contains
+the following:
+
+```yaml
+#cloud-config
+
+packages:
+  - crypto-config
+runcmd:
+  - crypto-config switch future
+```
+
+Create an LXD profile, include the file above and use the profile to start a
+container using Ubuntu plucky:
+
+```bash
+lxc profile create crypto-config
+lxc profile set crypto-config user.user-data - < user-data.yaml
+lxc launch ubuntu-daily:plucky cc-test -p default -p crypto-config
+```
+
+This is used to make a demo which is stored under `docs/lxd-cloud-config`.
+
 ### Hardening and compliance
 
 Distributions need to find the balance between compatibility and security. Some
