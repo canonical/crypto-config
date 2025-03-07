@@ -17,7 +17,7 @@ crypto-config - display and manage crypto-config profiles
 
 == Commands
 
-*get*::
+*get-current*::
 Return the profile currently in use.
 
 *status*::

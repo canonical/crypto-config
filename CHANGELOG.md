@@ -1,5 +1,11 @@
 # Changelog
 
+## [0.7.5] - UNRELEASED
+
+### Fixed
+
+- Correct command-line switch in manpage
+
 ## [0.7.4] - 2025-03-06
 
 ### Updated/added
