@@ -5,6 +5,7 @@
 ### Fixed
 
 - Correct command-line switch in manpage
+- Versions in `CHANGELOG.md`
 
 ## [0.7.4] - 2025-03-06
 
@@ -36,5 +37,6 @@ Thanks @waveform and @utkarsh2102
 
 _Initial release._
 
-[0.7.4] https://github.com/canonical/crypto-config/releases/tag/v0.7.4
-[0.7.3] https://github.com/canonical/crypto-config/releases/tag/v0.7.3
+[0.7.5]: https://github.com/canonical/crypto-config/releases/tag/v0.7.5
+[0.7.4]: https://github.com/canonical/crypto-config/releases/tag/v0.7.4
+[0.7.3]: https://github.com/canonical/crypto-config/releases/tag/v0.7.3
