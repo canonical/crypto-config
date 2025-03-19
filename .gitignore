@@ -2,7 +2,5 @@
 *.sw[po]
 
 /target/
-/Cargo.*
-src/main.rs
 
 debian/files
