@@ -69,7 +69,6 @@ _list_profiles_and_parent() {
       continue
     fi
 
-    # TODO: switch to the 'metadata.json' file rather than 'parent'
     jq -r '"\(.parent) '"${profile}"'"' < "${profile_dir}/${profile}/metadata.json"
   done
 }
